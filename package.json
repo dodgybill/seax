@@ -1,0 +1,13 @@
+{
+  "name": "seax-intelligence",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/unit.mjs && playwright test",
+    "test:unit": "node --test tests/unit.mjs",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0"
+  }
+}

@@ -1,0 +1,56 @@
+/* SEAX Intelligence design tokens v0.1 (Grek, 10 Nov 2026)
+   Dark SIGINT-style desk. Black, gold thread, Essex red.
+   All text pairs below checked for WCAG 2.2 AA contrast on their background. */
+:root {
+  /* Surfaces */
+  --seax-bg:            #0A0A0B;  /* app background */
+  --seax-surface-1:     #121214;  /* panels, cards */
+  --seax-surface-2:     #1A1A1E;  /* raised panels, inputs */
+  --seax-surface-3:     #24242A;  /* hover, selected rows */
+  --seax-border:        #2E2E35;
+  --seax-border-strong: #45454F;
+
+  /* Text */
+  --seax-text:          #ECE8DF;  /* primary text, warm white */
+  --seax-text-muted:    #A39E92;  /* labels, metadata */
+  --seax-text-faint:    #8A857A;  /* placeholders only (AA large/UI) */
+
+  /* Brand */
+  --seax-gold:          #C9A24A;  /* gold thread: accents, active nav, focus */
+  --seax-gold-bright:   #E2BE63;  /* hover */
+  --seax-gold-dim:      #7A6230;  /* rules, inactive icons */
+  --seax-red:           #C8102E;  /* Essex red: badge, alerts, destructive fills */
+  --seax-red-text:      #FF5A6E;  /* red used as text on dark */
+  --seax-signal:        #4FD1A5;  /* console "live" green: sync ok, online */
+  --seax-amber:         #F2A93B;  /* warnings, review due */
+
+  /* Handling banners (desk's own markings, not government classifications) */
+  --seax-banner-internal-bg:     #1F3A2E; --seax-banner-internal-fg:     #CFF5E4; /* SEAX DESK-INTERNAL */
+  --seax-banner-confidential-bg: #5A3A0C; --seax-banner-confidential-fg: #FFE7B8; /* CASE-CONFIDENTIAL */
+  --seax-banner-named-bg:        #6E0B1C; --seax-banner-named-fg:        #FFE3E7; /* NAMED-ACCESS */
+
+  /* Type */
+  --seax-font-ui:   -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", system-ui, sans-serif;
+  --seax-font-mono: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace; /* IDs, timestamps, hashes */
+  --seax-text-xs: 12px; --seax-text-sm: 14px; --seax-text-md: 16px; /* 16px minimum for inputs on iPhone (stops zoom) */
+  --seax-text-lg: 20px; --seax-text-xl: 26px; --seax-text-2xl: 34px;
+  --seax-tracking-label: 0.08em; /* uppercase console labels */
+
+  /* Space, shape, motion */
+  --seax-space-1: 4px; --seax-space-2: 8px; --seax-space-3: 12px; --seax-space-4: 16px;
+  --seax-space-5: 24px; --seax-space-6: 32px; --seax-space-7: 48px;
+  --seax-radius-sm: 4px; --seax-radius-md: 8px; --seax-radius-lg: 12px;
+  --seax-hit-min: 44px; /* minimum tap target */
+  --seax-focus: 0 0 0 2px var(--seax-bg), 0 0 0 4px var(--seax-gold);
+  --seax-ease: cubic-bezier(.2,.8,.2,1); --seax-dur: 160ms;
+}
+@media (prefers-reduced-motion: reduce) { :root { --seax-dur: 0ms; } }
+
+/* Banner component */
+.seax-banner { font: 600 var(--seax-text-xs)/1 var(--seax-font-mono); letter-spacing: var(--seax-tracking-label);
+  text-transform: uppercase; text-align: center; padding: var(--seax-space-2); }
+.seax-banner--internal     { background: var(--seax-banner-internal-bg);     color: var(--seax-banner-internal-fg); }
+.seax-banner--confidential { background: var(--seax-banner-confidential-bg); color: var(--seax-banner-confidential-fg); }
+.seax-banner--named        { background: var(--seax-banner-named-bg);        color: var(--seax-banner-named-fg); }
+.seax-disclaimer { color: var(--seax-text-muted); font-size: var(--seax-text-xs); }
+/* Disclaimer copy: "SEAX Intelligence is a private case-management desk. It is not a police, government or official body." */
