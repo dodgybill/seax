@@ -8,15 +8,15 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="SEAX">
+<meta name="apple-mobile-web-app-title" content="VIGIL">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' blob: data:; media-src 'self' blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; base-uri 'none'">
-<title>SEAX Intelligence</title>
+<title>VIGIL</title>
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="assets/seax-tokens.css">
-<link rel="icon" href="favicon.ico" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/seax-small-mark-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/seax-small-mark-16.png">
-<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link id="icon-any" rel="icon" href="favicon.ico" sizes="any">
+<link id="icon-32" rel="icon" type="image/png" sizes="32x32" href="assets/icons/seax-small-mark-32.png">
+<link id="icon-16" rel="icon" type="image/png" sizes="16x16" href="assets/icons/seax-small-mark-16.png">
+<link id="icon-apple" rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
 <style>
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -37,8 +37,11 @@ button, .chip, .qadd, .result, .card, a {
 }
 .m, .mono { font-family: var(--seax-font-mono); }
 .brand { display: flex; align-items: center; gap: var(--seax-space-2); font: 700 var(--seax-text-md)/1 var(--seax-font-ui); letter-spacing: .04em; color: var(--seax-text); }
-.mark { width: 64px; height: 64px; display: block; }
+.mark { width: 32px; height: 32px; display: block; }
+@media (min-width: 801px) { .mark { width: 64px; height: 64px; } }
 .title { font: 700 var(--seax-text-2xl)/1.15 var(--seax-font-ui); letter-spacing: -0.02em; margin: 0 0 var(--seax-space-4); color: var(--seax-text); }
+.identity .title, #about-view .title { margin: var(--seax-space-3) 0 var(--seax-space-1); }
+.firm { margin: 0 0 var(--seax-space-4); color: var(--seax-text-muted); }
 .badge {
   display: inline-flex; align-items: center; margin-left: var(--seax-space-2);
   padding: 2px var(--seax-space-2); border: 1px solid var(--seax-border-strong); border-radius: 999px;
@@ -183,7 +186,9 @@ svg text { font: 11px var(--seax-font-mono); fill: var(--seax-text); }
   }
   .stage { order: 1; }
   .rail button { min-height: 52px; min-width: 64px; }
-  header { padding: var(--seax-space-3); }
+  header { padding: calc(var(--seax-space-2) + env(safe-area-inset-top)) var(--seax-space-3) var(--seax-space-2); }
+  .quiet { display: none; }
+  .mark { width: 32px; height: 32px; }
   .home, .search, .fields, .settings, .pane { padding: var(--seax-space-3); }
   .center { margin: var(--seax-space-4) var(--seax-space-3); }
   .rkgrid { grid-template-columns: 1fr; }

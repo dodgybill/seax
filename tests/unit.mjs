@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import test from 'node:test';
+import { APP_LISTING, APP_NAME, BYLINE, FIRM_NAME, ICONS } from '../js/config.js';
 import {
   ITERATIONS,
   auditHash,
@@ -22,6 +24,29 @@ import { groupResults, publicText, searchDesk } from '../js/search.js';
 import { deriveFieldKey, isSealedSpecial, openSpecialValue, sealSpecialValue } from '../js/special.js';
 import { mergeStates } from '../js/sync.js';
 import { buildMarkedJpeg } from './exif-fixture.js';
+
+test('the desk is VIGIL by SEAX Intelligence and icon paths stay in one list', () => {
+  assert.equal(APP_NAME, 'VIGIL');
+  assert.equal(FIRM_NAME, 'SEAX Intelligence');
+  assert.equal(BYLINE, `by ${FIRM_NAME}`);
+  assert.equal(APP_LISTING, `${APP_NAME} by ${FIRM_NAME}`);
+  const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const manifest = JSON.parse(fs.readFileSync(new URL('../manifest.json', import.meta.url), 'utf8'));
+  const worker = fs.readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
+  assert.match(html, new RegExp(`<title>${APP_NAME}</title>`));
+  assert.match(html, new RegExp(`apple-mobile-web-app-title" content="${APP_NAME}"`));
+  assert.equal(manifest.name, APP_LISTING);
+  assert.equal(manifest.short_name, APP_NAME);
+  for (const file of [ICONS.favicon, ICONS.png16, ICONS.png32, ICONS.appleTouch]) {
+    assert.ok(html.includes(file), file);
+  }
+  const listed = manifest.icons.map((icon) => icon.src);
+  for (const file of [ICONS.appleTouch, ICONS.badge192, ICONS.badge512, ICONS.badge1024]) {
+    assert.ok(listed.includes(file), file);
+  }
+  assert.match(worker, /import \{ ICONS \} from '\.\/js\/config\.js'/);
+  assert.equal(ICONS.mark, 'assets/icons/seax-small-mark-64.png');
+});
 
 test('special labels are tagged and ordinary words are not', () => {
   for (const label of ['Religion', 'Ethnicity', 'Racial origin', 'Political views', 'Party affiliation', 'Faith', 'Race']) {

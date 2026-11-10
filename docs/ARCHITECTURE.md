@@ -1,6 +1,6 @@
 # Architecture
 
-SEAX Intelligence v1 is a static site. `index.html` loads `js/app.js` as a module. There is no bundler. GitHub Pages serves the repository root. `.nojekyll` stops Jekyll.
+VIGIL is a static site published by SEAX Intelligence. `index.html` loads `js/app.js` as a module. There is no bundler. GitHub Pages serves the repository root. The Pages path stays `/seax/`. `.nojekyll` stops Jekyll.
 
 The browser holds the only plaintext. IndexedDB store `kv` in database `seax-intelligence` keeps the wrapped vault, lockout timestamps, one encrypted state blob, and encrypted media chunks. `js/app.js` renders the desk after unlock and drops the data key on lock.
 
@@ -8,7 +8,7 @@ The browser holds the only plaintext. IndexedDB store `kv` in database `seax-int
 
 | Module | Role |
 |---|---|
-| `js/config.js` | `ACTIVE_MODE` build flag |
+| `js/config.js` | `APP_NAME`, `FIRM_NAME`, `BYLINE`, `APP_LISTING`, `ICONS`, `ACTIVE_MODE` |
 | `js/crypto.js` | PBKDF2, AES-GCM, recovery-key text, audit hash |
 | `js/special.js` | HKDF sub-key for special-category values |
 | `js/lockout.js` | Rolling lockout window |
@@ -26,6 +26,12 @@ The browser holds the only plaintext. IndexedDB store `kv` in database `seax-int
 
 `ACTIVE_MODE` changes setup (no username, owner name SEAX ALPHA, ACTIVE badge, audit line `ACTIVE MODE active`). Compliance behaviour is the Settings switches, all off until SEAX ALPHA turns one on.
 
+## Names
+
+The platform is VIGIL. SEAX Intelligence is the maker. `BYLINE` is `by ${FIRM_NAME}` and `APP_LISTING` is `${APP_NAME} by ${FIRM_NAME}`, both derived in `js/config.js`. The lock screen and About show VIGIL as the large title and the byline beneath. The document title and the Apple web-app title are VIGIL. The manifest name is the listing and `short_name` is VIGIL.
+
+IndexedDB stays `seax-intelligence`. Storage keys, backup file names (`seax-sync.seax`, `seax-backup.seax`), the shell cache prefix and `/seax/` are unchanged, so an existing desk and any published URL keep working. Icon files are unchanged until the VIGIL mark arrives. Their paths are the `ICONS` object. `index.html` and `manifest.json` repeat those paths because the browser reads them before the module. `sw.js` imports `ICONS`. `tests/unit.mjs` checks the static copies still match the object.
+
 ## Security controls
 
 Threat identifiers are from `docs/THREAT-MODEL.md`. A control is listed only where this desk implements it.
@@ -42,7 +48,7 @@ Threat identifiers are from `docs/THREAT-MODEL.md`. A control is listed only whe
 | Sync and backup bundle: AES-GCM plus SHA-256 of the ciphertext, kind check, verify does not write | T6 | `packBundle`, `BundleSyncAdapter.verifyBundle` in `js/sync.js` | Playwright flips one byte and expects “This file failed the integrity check.”; a backup is refused as a sync import |
 | Special-category values stay out of search, filters, cross-record lists and unencrypted print | T8 | `publicText` in `js/search.js`; `printSheet` in `js/app.js` | `tests/unit.mjs` search and `publicText`; Playwright “No matches” for the special value |
 | Rendering escapes text; no third-party script | T9, T10, T11 | `esc` in `js/app.js`; CSP meta in `index.html`; Lucide paths are inlined | Playwright asserts no third-party host and no console error |
-| Service worker caches the shell only | T12 | `sw.js` asset list; comment and cache name `seax-shell-v3` | Playwright offline shell still shows setup, with no desk data in that cache |
+| Service worker caches the shell only | T12 | `sw.js` asset list; comment and cache name `seax-shell-v4` | Playwright offline shell still shows setup, with no desk data in that cache |
 | Fixtures are made-up tokens | T14 | `tests/v1.spec.js`, `tests/exif-fixture.js`, `tests/unit.mjs` | Those files; no real subject names |
 
 Not implemented in this version, and not claimed above: recovery-key rotation (T5; a new passphrase keeps the same recovery key), a warning when an older backup is restored (T6), GitHub branch protection (T10), and blurring the app switcher (T12). `docs/THREAT-MODEL.md` is the Security Lead’s draft and is stored unchanged.

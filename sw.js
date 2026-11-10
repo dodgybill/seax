@@ -1,20 +1,13 @@
 /* App shell only. Desk data stays in IndexedDB and is never cached here. */
-const CACHE = 'seax-shell-v3';
+import { ICONS } from './js/config.js';
+
+const CACHE = 'seax-shell-v4';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './favicon.ico',
   './assets/seax-tokens.css',
-  './assets/icons/favicon.ico',
-  './assets/icons/seax-small-mark-16.png',
-  './assets/icons/seax-small-mark-32.png',
-  './assets/icons/seax-small-mark-48.png',
-  './assets/icons/seax-small-mark-64.png',
-  './assets/icons/apple-touch-icon.png',
-  './assets/icons/seax-badge-192.png',
-  './assets/icons/seax-badge-512.png',
-  './assets/icons/seax-badge-1024.png',
+  ...Object.values(ICONS).map((file) => `./${file}`),
   './js/config.js',
   './js/time.js',
   './js/schema.js',

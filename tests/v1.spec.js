@@ -36,7 +36,8 @@ function track(page, bucket) {
 
 async function shot(page, name) {
   fs.mkdirSync(SHOTS, { recursive: true });
-  await page.screenshot({ path: path.join(SHOTS, name), fullPage: true });
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: path.join(SHOTS, name) });
 }
 
 async function hasVault(page) {
@@ -253,12 +254,16 @@ test.describe.serial('ACTIVE mode', () => {
   test('setup, recovery confirm, and home', async () => {
     await page.addInitScript(() => localStorage.setItem('seax_launch_v1', 'plain'));
     await page.goto('/');
-    await expect(page).toHaveTitle('SEAX Intelligence');
+    await expect(page).toHaveTitle('VIGIL');
+    await expect(page.locator('h1.title')).toHaveText('VIGIL');
+    await expect(page.locator('.firm')).toHaveText('by SEAX Intelligence');
     await expect(page.locator('#n')).toHaveCount(0);
     await expect(page.locator('.h', { hasText: 'CREATE SEAX ALPHA' })).toBeVisible();
     expect(await page.evaluate(() => localStorage.getItem('seax_launch_v1'))).toBeNull();
-    const manifest = await page.evaluate(async () => (await fetch('./manifest.json')).text());
-    expect(manifest).not.toMatch(/DEMO|v1 PREVIEW|TEST DATA|NOT FOR REAL/i);
+    const manifest = JSON.parse(await page.evaluate(async () => (await fetch('./manifest.json')).text()));
+    expect(JSON.stringify(manifest)).not.toMatch(/DEMO|v1 PREVIEW|TEST DATA|NOT FOR REAL/i);
+    expect(manifest.name).toBe('VIGIL by SEAX Intelligence');
+    expect(manifest.short_name).toBe('VIGIL');
     await page.fill('#p', PASS);
     await page.fill('#p2', PASS);
     await page.getByRole('button', { name: 'CREATE SEAX ALPHA' }).click();
@@ -266,6 +271,13 @@ test.describe.serial('ACTIVE mode', () => {
     recoveryKey = await confirmRecovery(page, { succeed: false });
     await expect(page.locator('#home')).toBeVisible();
     await expect(page.locator('#mode-badge')).toHaveText('ACTIVE');
+    await expect(page.locator('.brand')).toContainText('VIGIL');
+    await page.locator('.rail [data-screen="settings"]').click();
+    await page.getByRole('button', { name: 'About' }).click();
+    await expect(page.locator('#about-view h1.title')).toHaveText('VIGIL');
+    await expect(page.locator('#about-view .firm')).toHaveText('by SEAX Intelligence');
+    await page.locator('.rail [data-screen="home"]').click();
+    await expect(page.locator('#home')).toBeVisible();
     await expect(page.getByText('COMPLIANCE UNLOCK')).toHaveCount(0);
     await expect(page.getByText('Review desk documents', { exact: false })).toHaveCount(0);
     await assertCleanCopy(page);
@@ -275,6 +287,8 @@ test.describe.serial('ACTIVE mode', () => {
 
   test('lock and unlock', async () => {
     await page.locator('[data-act="lock"]').click();
+    await expect(page.locator('h1.title')).toHaveText('VIGIL');
+    await expect(page.locator('.firm')).toHaveText('by SEAX Intelligence');
     await expect(page.getByRole('button', { name: 'SIGN IN' })).toBeVisible();
     await page.fill('#p', 'not-the-passphrase');
     await page.getByRole('button', { name: 'SIGN IN' }).click();
@@ -624,10 +638,12 @@ test('compliance gate returns when ACTIVE mode is off', async ({ browser }) => {
   const page = await context.newPage();
   const bucket = { errors: [], hosts: [] };
   track(page, bucket);
+  const configBody = fs.readFileSync(new URL('../js/config.js', import.meta.url), 'utf8')
+    .replace('export const ACTIVE_MODE = true;', 'export const ACTIVE_MODE = false;');
   await context.route('**/js/config.js', (route) => route.fulfill({
     status: 200,
     contentType: 'text/javascript',
-    body: 'export const ACTIVE_MODE = false;\n',
+    body: configBody,
   }));
   await page.goto('/');
   await expect(page.locator('#mode-badge')).toHaveCount(0);

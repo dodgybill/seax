@@ -1,4 +1,4 @@
-import { ACTIVE_MODE } from './config.js';
+import { ACTIVE_MODE, APP_NAME, BYLINE, ICONS } from './config.js';
 import { lockoutView, nextLockout } from './lockout.js';
 import { COMPLIANCE_KEYS } from './settings.js';
 import { deriveFieldKey, isSealedSpecial, openSpecialValue, sealSpecialValue } from './special.js';
@@ -346,13 +346,13 @@ function rail() {
 function header() {
   const name = state.owner.name === 'SEAX ALPHA' ? 'SEAX ALPHA' : `${state.owner.name} · SEAX ALPHA`;
   return `<header>
-    <div class="brand"><img class="mark" src="assets/icons/seax-small-mark-64.png" width="64" height="64" alt="">SEAX${ACTIVE_MODE ? '<span class="badge" id="mode-badge">ACTIVE</span>' : ''}</div>
+    <div class="brand">${markImg()}${esc(APP_NAME)}${ACTIVE_MODE ? '<span class="badge" id="mode-badge">ACTIVE</span>' : ''}</div>
     <button class="search-jump" data-act="go" data-screen="search" aria-label="Search">${icon('search')}<span>Search</span><span class="shortcut">/</span></button>
     <div class="st">
       <span class="ok">${esc(name)}</span>
-      <span>Sync bundle</span>
-      ${flag('gate') ? `<span>Desk gate ${deskOpen() ? '<span class="ok">open</span>' : '<span class="amb">shut</span>'}</span>` : ''}
-      <span>Lock after ${devicePolicy.idleMin} min</span>
+      <span class="quiet">Sync bundle</span>
+      ${flag('gate') ? `<span class="quiet">Desk gate ${deskOpen() ? '<span class="ok">open</span>' : '<span class="amb">shut</span>'}</span>` : ''}
+      <span class="quiet">Lock after ${devicePolicy.idleMin} min</span>
       <span id="clock">${esc(nowLondon())}</span>
       <a href="#" data-act="lock">Lock</a>
     </div>
@@ -367,6 +367,7 @@ function footer() {
   return `<footer>${disclaimer}<span id="chain">Audit ${state.audit.length} entries</span></footer>`;
 }
 function bodyScreen() {
+  if (ui.screen === 'about') return aboutScreen();
   if (ui.screen === 'search') return searchScreen();
   if (ui.screen === 'fields') return fieldsScreen();
   if (ui.screen === 'settings') return settingsScreen();
@@ -405,6 +406,22 @@ function settingsScreen() {
       ${switches.map(([key, label]) => `<label class="switch"><input type="checkbox" id="cmp-${key}" ${s.compliance[key] ? 'checked' : ''}> ${label}</label>`).join('')}
     </div>
     <button data-act="go" data-screen="fields">Custom fields</button>
+    <button data-act="go" data-screen="about">About</button>
+  </div>`;
+}
+
+function markImg() {
+  return `<img class="mark" src="${ICONS.mark}" width="64" height="64" alt="">`;
+}
+function identity() {
+  return `<div class="identity">${markImg()}<h1 class="title">${esc(APP_NAME)}</h1><p class="firm">${esc(BYLINE)}</p></div>`;
+}
+function aboutScreen() {
+  return `<div class="settings" id="about-view">
+    <h1 class="title">${esc(APP_NAME)}</h1>
+    <p class="firm">${esc(BYLINE)}</p>
+    <p class="note">Private case desk. Records stay encrypted on this device.</p>
+    <button data-act="go" data-screen="settings">Settings</button>
   </div>`;
 }
 
@@ -412,8 +429,8 @@ function setupScreen() {
   const name = ACTIVE_MODE
     ? ''
     : '<label>SEAX ALPHA username</label><input id="n" autocomplete="username" autocapitalize="off">';
-  return `<div class="center"><div class="brand"><img class="mark" src="assets/icons/seax-small-mark-64.png" width="64" height="64" alt="">SEAX</div>
-    <div class="h">${ACTIVE_MODE ? 'Create SEAX ALPHA' : 'Create SEAX ALPHA'}</div>
+  return `<div class="center">${identity()}
+    <div class="h">Create SEAX ALPHA</div>
     ${name}
     <label>Passphrase (12+ characters)</label><input id="p" type="password" autocomplete="new-password">
     <label>Confirm passphrase</label><input id="p2" type="password" autocomplete="new-password">
@@ -434,7 +451,7 @@ function recoveryScreen() {
   const ask = setupPending.ask;
   const grid = groups.map((g, i) => `<div class="rk" data-group="${g}"><span class="k">${String(i + 1).padStart(2, '0')}</span> ${g}</div>`).join('');
   const inputs = ask.map((idx, n) => `<label for="ch${n}">Group ${String(idx + 1).padStart(2, '0')}</label><input id="ch${n}" data-idx="${idx}" autocomplete="off" autocapitalize="characters" spellcheck="false">`).join('');
-  return `<div class="center" id="recovery-sheet" style="max-width:640px"><div class="brand"><img class="mark" src="assets/icons/seax-small-mark-64.png" width="64" height="64" alt="">SEAX</div>
+  return `<div class="center" id="recovery-sheet" style="max-width:640px">${identity()}
     <div class="h">RECOVERY KEY · SHOWN ONCE</div>
     <p class="note">Print this page or write the key down, then store it offline. It will not be shown again. Anyone with this key can set a new passphrase.</p>
     <div class="rkgrid" id="key-grid">${grid}</div>
@@ -451,7 +468,7 @@ function recoveryScreen() {
 function printSheet() {
   if (setupPending) {
     const groups = setupPending.groups;
-    return `<h1>SEAX Intelligence</h1><h2>Recovery key</h2>
+    return `<h1>${esc(APP_NAME)}</h1><p>${esc(BYLINE)}</p><h2>Recovery key</h2>
       <p>Shown once. Store this page offline. Anyone with this key can set a new passphrase.</p>
       ${groups.map((g, i) => `<div class="rk">${String(i + 1).padStart(2, '0')} &nbsp; ${g}</div>`).join('')}
       <p class="m">${groups.join('-')}</p><p>SEAX ALPHA: ${esc(setupPending.name)}</p>`;
@@ -478,7 +495,7 @@ function printSheet() {
     <p>Printed ${esc(nowLondon())}. Special-category values are omitted from this page.</p>`;
 }
 function signScreen() {
-  return `<div class="center"><div class="brand"><img class="mark" src="assets/icons/seax-small-mark-64.png" width="64" height="64" alt="">SEAX</div>
+  return `<div class="center">${identity()}
     <div class="h">SIGN IN · SEAX ALPHA</div>
     <label>Passphrase</label><input id="p" type="password" autocomplete="current-password">
     <button class="g" data-act="sign-in">SIGN IN</button>
@@ -493,7 +510,7 @@ function signScreen() {
     </div></div>`;
 }
 function recoverScreen() {
-  return `<div class="center"><div class="brand"><img class="mark" src="assets/icons/seax-small-mark-64.png" width="64" height="64" alt="">SEAX</div>
+  return `<div class="center">${identity()}
     <div class="h">UNLOCK WITH RECOVERY KEY</div>
     <p class="note">Enter the printed key, then choose a new passphrase. The recovery key itself stays the same.</p>
     <label>Recovery key</label><textarea id="rec-key" rows="3" autocomplete="off" autocapitalize="characters" spellcheck="false"></textarea>
@@ -1843,11 +1860,28 @@ function fillAddExtras() {
   }
 }
 
+function applyBrand() {
+  document.title = APP_NAME;
+  const apple = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+  if (apple) apple.setAttribute('content', APP_NAME);
+  const links = {
+    'icon-any': ICONS.favicon,
+    'icon-32': ICONS.png32,
+    'icon-16': ICONS.png16,
+    'icon-apple': ICONS.appleTouch,
+  };
+  for (const [id, href] of Object.entries(links)) {
+    const el = document.getElementById(id);
+    if (el) el.setAttribute('href', href);
+  }
+}
+
 async function boot() {
+  applyBrand();
   try { localStorage.removeItem('seax_launch_v1'); } catch { /* ignore */ }
   bind();
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    navigator.serviceWorker.register('./sw.js', { type: 'module' }).catch(() => {});
   }
   const vault = await idbGet(VAULT_KEY);
   ui.vault = !!vault;

@@ -1,8 +1,12 @@
-# SEAX Intelligence
+# VIGIL
 
-SEAX Intelligence is a private case desk that runs entirely in the browser. This repository is a static site: `index.html`, the `js/` modules, a manifest and a service worker. There is no build step. GitHub Pages can serve the repository root. The `.nojekyll` file stops Pages from running Jekyll.
+VIGIL is the case desk. SEAX Intelligence is the maker. On screen it reads VIGIL, with "by SEAX Intelligence" under the name on the lock screen and on About. The page title is VIGIL. The installed name is "VIGIL by SEAX Intelligence".
 
-The header uses the small mark at 64 pixels (`assets/icons/seax-small-mark-64.png`). The favicon is the small-mark `favicon.ico`. The Apple touch icon and the manifest icons are the full badge. In-app icons are inlined Lucide drawings.
+The desk runs entirely in the browser. This repository is a static site: `index.html`, the `js/` modules, a manifest and a service worker. There is no build step. GitHub Pages can serve the repository root, which stays `/seax/`. The `.nojekyll` file stops Pages from running Jekyll. The IndexedDB name, storage keys and file names stay as they are, so a desk already on a device keeps opening.
+
+`APP_NAME`, `FIRM_NAME`, `BYLINE` and `APP_LISTING` live in `js/config.js`. Icon paths live in `ICONS` in that same file. The header mark, favicon and home-screen icons are still the current artwork. When the VIGIL mark arrives, change `ICONS` and the matching paths in `index.html` and `manifest.json`. The service worker imports `ICONS`, so the shell cache follows that list.
+
+The header uses the small mark (`ICONS.mark`, today `assets/icons/seax-small-mark-64.png`), drawn at 64 pixels on a wide window and 32 on a phone. The favicon is the small-mark `favicon.ico`. The Apple touch icon and the manifest icons are the full badge. In-app icons are inlined Lucide drawings.
 
 ## Run it
 

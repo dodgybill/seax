@@ -1,7 +1,7 @@
 {
-  "name": "SEAX Intelligence",
-  "short_name": "SEAX",
-  "description": "SEAX Intelligence case desk",
+  "name": "VIGIL by SEAX Intelligence",
+  "short_name": "VIGIL",
+  "description": "Private case desk.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
