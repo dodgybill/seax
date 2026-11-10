@@ -172,10 +172,19 @@ footer { font: var(--seax-text-xs) var(--seax-font-ui); color: var(--seax-text-m
 .switch input { width: auto; margin: 0; }
 #print-root { display: none; }
 svg text { font: 11px var(--seax-font-mono); fill: var(--seax-text); }
+.graph-fold summary {
+  min-height: var(--seax-hit-min);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
 @media (max-width: 980px) {
   .wrap { flex-direction: column; }
   .left, .right { width: auto; border: 0; border-bottom: 1px solid var(--seax-border); }
   .cols { grid-template-columns: 1fr; }
+  .right { order: 1; }
+  .main { order: 2; }
+  .left { order: 3; }
 }
 @media (max-width: 800px) {
   .shell { flex-direction: column; }

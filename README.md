@@ -88,11 +88,10 @@ Search does not call a network. There is no third-party script, font or tracker.
 
 ```bash
 npm install
-npx playwright install chromium
 npm test
 ```
 
-`npm test` runs the unit checks and the browser suite. The browser suite covers the flag on and off. The off run answers `js/config.js` with `ACTIVE_MODE = false` for that browser only. The file in the repository is left on.
+`npm test` runs `pretest` first, which installs Chromium (`playwright install chromium`, the same step as `npx playwright install chromium`). A CI job only needs those two commands. `npm run test:setup` installs the browser on its own. The browser suite covers the flag on and off. The off run answers `js/config.js` with `ACTIVE_MODE = false` for that browser only. The file in the repository is left on.
 
 ## Close the site
 

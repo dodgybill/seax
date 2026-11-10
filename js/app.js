@@ -285,6 +285,7 @@ function lock() {
   ui.preview = null;
   ui.sel = null;
   ui.error = '';
+  ui.notice = '';
   ui.showRecovery = false;
   revealed.clear();
   seenThumb.clear();
@@ -730,7 +731,7 @@ function graphHtml() {
   });
   const links = state.links.filter((l) => pos[l.a] && pos[l.b]);
   if (!ents.length) return '<div class="note">No entries in this case yet.</div>';
-  let s = `<svg width="${W}" height="${H}">`;
+  let s = `<svg width="${W}" height="${H}" class="graph">`;
   links.forEach((l) => { s += `<line x1="${pos[l.a][0]}" y1="${pos[l.a][1]}" x2="${pos[l.b][0]}" y2="${pos[l.b][1]}" stroke="var(--seax-border-strong)" stroke-width="1.5"/>`; });
   ents.forEach((e) => {
     const [x, y] = pos[e.id];
@@ -738,6 +739,9 @@ function graphHtml() {
     s += `<g data-act="open-entry" data-id="${esc(e.id)}" data-case="${esc(c.id)}" style="cursor:pointer"><circle cx="${x}" cy="${y}" r="${ui.sel === e.id ? 26 : 22}" fill="var(--seax-surface-1)" stroke="${col}" stroke-width="2" ${e.locked ? 'stroke-dasharray="4 3"' : ''}/><text x="${x}" y="${y + 4}" text-anchor="middle" fill="${col}" font-weight="700">${e.locked ? '!' : esc(ABBR[e.type] || '?')}</text><text x="${x}" y="${y + 40}" text-anchor="middle">${esc(e.label)}</text></g>`;
   });
   s += '</svg>';
+  if (window.matchMedia('(max-width: 980px)').matches) {
+    return `<details class="graph-fold"><summary>Link graph</summary>${s}</details>`;
+  }
   return s;
 }
 function auditHtml() {
@@ -1355,7 +1359,6 @@ async function saveField() {
   }
   ui.editField = null;
   await saveState();
-  ui.notice = resolveSpecial({ label, explicitSpecial }) ? '' : '';
   render();
 }
 async function archiveField(id, archived) {

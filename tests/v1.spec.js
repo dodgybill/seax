@@ -343,6 +343,8 @@ test.describe.serial('ACTIVE mode', () => {
     await page.locator('[data-cat="Criminal record"]').fill('CR-NONE');
     await page.locator('[data-cat="Biometrics"]').fill('BIO-NONE');
     await expect(page.locator('#insp label', { hasText: 'Religion' }).locator('xpath=following-sibling::input[1]')).toHaveValue('TEMPLE-NOTE');
+    await expect(page.locator('#pane > svg.graph')).toBeVisible();
+    await expect(page.locator('.graph-fold')).toHaveCount(0);
 
     await addEntry(page, 'Location', 'SITE-NORTH');
     await addEntry(page, 'Vehicle', 'PLATE-4');
@@ -519,6 +521,14 @@ test.describe.serial('ACTIVE mode', () => {
     await page.locator('[data-tab="sync"]').click();
     await page.fill('#sync-pass', PASS);
     const backup = await downloadBytes(page, 'EXPORT ENCRYPTED BACKUP');
+    await expect(page.locator('#sync-msg')).toContainText('Backup downloaded.');
+    await page.locator('[data-act="lock"]').click();
+    await expect(page.getByRole('button', { name: 'SIGN IN' })).toBeVisible();
+    await expect(page.locator('body')).not.toContainText('Backup downloaded');
+    await page.fill('#p', PASS);
+    await page.getByRole('button', { name: 'SIGN IN' }).click();
+    await openDesk(page);
+    await page.locator('[data-tab="sync"]').click();
     await page.locator('#bundle-file').setInputFiles(backup);
     await page.fill('#sync-pass', PASS);
     await page.getByRole('button', { name: 'VERIFY BACKUP' }).click();
@@ -734,6 +744,20 @@ test('iPhone home and search', async ({ browser }) => {
   await openDesk(page);
   await addEntry(page, 'Person', 'SIGNAL-77');
   await addEntry(page, 'Location', 'SITE-NORTH');
+  const record = await page.evaluate(() => {
+    const insp = document.querySelector('#insp').getBoundingClientRect();
+    const fold = document.querySelector('.graph-fold');
+    return {
+      inspTop: insp.top,
+      foldTop: fold ? fold.getBoundingClientRect().top : null,
+      open: fold ? fold.open : null,
+      foldHeight: fold ? fold.getBoundingClientRect().height : null,
+    };
+  });
+  expect(record.open).toBe(false);
+  expect(record.inspTop).toBeLessThan(280);
+  expect(record.inspTop).toBeLessThan(record.foldTop);
+  expect(record.foldHeight).toBeLessThan(80);
   await page.locator('.rail [data-screen="home"]').click();
   await expect(page.locator('.hero-search')).toBeVisible();
   const homeTargets = await page.locator('#home button, .rail button, header button').evaluateAll((els) => (
