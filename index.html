@@ -1,0 +1,126 @@
+<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SEAX Intelligence · Demo</title><style>
+*{box-sizing:border-box}body{margin:0;background:#0a0f17;color:#c9d4e3;font:14px -apple-system,'Helvetica Neue',sans-serif}
+.m{font-family:ui-monospace,Menlo,'SF Mono',monospace}
+.test{background:#7a1f1f;color:#ffd9d9;text-align:center;font:600 11px ui-monospace,Menlo,monospace;letter-spacing:3px;padding:4px}
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:10px 16px;background:#0d1420;border-bottom:1px solid #1c2736}
+.brand{font:700 17px ui-monospace,Menlo,monospace;letter-spacing:4px;color:#e6edf7}.brand b{color:#3fd28c}
+.st{font:11px ui-monospace,Menlo,monospace;color:#7f8ea3;display:flex;gap:14px;flex-wrap:wrap}.ok{color:#3fd28c}.amb{color:#f0b429}.red{color:#ff7b7b}
+.wrap{display:flex;min-height:calc(100vh - 110px)}
+.left{width:260px;border-right:1px solid #1c2736;background:#0c121c;padding:12px}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}.right{width:360px;border-left:1px solid #1c2736;background:#0c121c;padding:14px;overflow:auto}
+.h{font:600 10px ui-monospace,Menlo,monospace;letter-spacing:2px;color:#6b7b91;margin:10px 0 8px}
+.card{padding:9px;border:1px solid #1c2736;border-radius:5px;margin-bottom:7px;background:#0f1724;cursor:pointer}.card.on{border-color:#3fd28c}
+.cn{font:600 13px ui-monospace,Menlo,monospace;color:#e6edf7}.cm{font-size:11px;color:#7f8ea3;margin-top:2px}
+.band{background:#10261c;border-bottom:1px solid #1f6b47;color:#3fd28c;font:600 11px ui-monospace,Menlo,monospace;letter-spacing:2px;padding:6px 16px}
+.tabs{display:flex;flex-wrap:wrap;border-bottom:1px solid #1c2736;background:#0d1420;padding:0 10px}
+.tab{padding:9px 13px;font:12px ui-monospace,Menlo,monospace;color:#7f8ea3;cursor:pointer}.tab.on{color:#e6edf7;border-bottom:2px solid #3fd28c}
+.pane{flex:1;padding:14px;overflow:auto}
+svg text{font:11px ui-monospace,Menlo,monospace;fill:#c9d4e3}
+.row{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid #162030;font-size:12px}.row .k{color:#6b7b91}.row .v{font-family:ui-monospace,Menlo,monospace;text-align:right}
+button,.btn{background:#0f1724;color:#9fb0c6;border:1px solid #2a3a50;border-radius:4px;padding:6px 10px;font:11px ui-monospace,Menlo,monospace;cursor:pointer;margin:3px 3px 0 0}
+button.g{border-color:#1f6b47;color:#3fd28c}button.r{border-color:#7a1f1f;color:#ff7b7b}button.a{border-color:#7a5a12;color:#f0b429}button:disabled{opacity:.35;cursor:not-allowed}
+input,select,textarea{width:100%;background:#0a0f17;color:#e6edf7;border:1px solid #2a3a50;border-radius:4px;padding:7px;font:13px ui-monospace,Menlo,monospace;margin:3px 0 8px}
+label{font-size:11px;color:#7f8ea3}.box{border:1px solid #1c2736;border-radius:5px;padding:10px;margin:10px 0;background:#0f1724}
+.lock{font:11px ui-monospace,Menlo,monospace;color:#6b7b91}
+table{width:100%;border-collapse:collapse;font:11px ui-monospace,Menlo,monospace}td,th{border-bottom:1px solid #162030;padding:5px;text-align:left;vertical-align:top}th{color:#6b7b91}
+footer{font:10px ui-monospace,Menlo,monospace;color:#5c6b80;padding:8px 16px;border-top:1px solid #1c2736;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.center{max-width:420px;margin:60px auto;padding:20px;border:1px solid #1c2736;border-radius:8px;background:#0c121c}
+.note{font-size:11px;color:#7f8ea3;line-height:1.5}
+@media(max-width:900px){.wrap{flex-direction:column}.left,.right{width:auto;border:0;border-bottom:1px solid #1c2736}}
+</style></head><body>
+<div class="test">DEMO BUILD · NOT FOR REAL PERSONAL DATA</div>
+<div id="app"></div>
+<script>
+const K='seax_launch_v1';let S,U=null,sel=null,tab='graph';
+const now=()=>new Date().toLocaleString('en-GB',{timeZone:'Europe/London'})+' UK';
+const today=()=>new Date().toISOString().slice(0,10);
+const uid=p=>p+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function sha(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+async function kdf(pw,salt){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']);const b=await crypto.subtle.deriveBits({name:'PBKDF2',salt:new TextEncoder().encode(salt),iterations:210000,hash:'SHA-256'},k,256);return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+function save(){localStorage.setItem(K,JSON.stringify(S))}
+async function log(action,detail){const prev=S.audit.length?S.audit[S.audit.length-1].hash:'GENESIS';const e={t:now(),who:U?U.name:'system',action,detail,prev};e.hash=await sha(prev+e.t+e.who+action+detail);S.audit.push(e);save()}
+function seed(){return{owner:null,attest:{},cases:[],ents:[],links:[],tasks:[],audit:[]}}
+const COL={Person:'#5aa9ff',Location:'#f0b429',Vehicle:'#c792ea','Telecom/Email':'#4dd0e1',Intelligence:'#3fd28c',Financial:'#ff9e64'};
+const ABBR={Person:'P',Location:'LOC',Vehicle:'VEH','Telecom/Email':'TEL',Intelligence:'INT',Financial:'£'};
+function deskOpen(){const a=S.attest;return a.ico&&a.dpia&&a.notice&&a.ropa&&a.retention&&a.dpia.review>=today()}
+function cur(){return S.cases.find(c=>c.id===S.curCase)||S.cases[0]||null}
+function unlock(c,cat){return c.unlocks.find(u=>u.cat===cat&&!u.revoked)}
+function R(){const app=document.getElementById('app');
+ if(!S.owner)return app.innerHTML=`<div class="center"><div class="brand">SEAX<b>//</b>INTELLIGENCE</div><div class="h">LAUNCH · STEP 1 OF 2 · CREATE TOP ADMIN</div>
+ <label>Top admin username</label><input id="n" placeholder="e.g. b.doyle"><label>Passphrase (12+ characters)</label><input id="p" type="password"><label>Confirm</label><input id="p2" type="password">
+ <button class="g" onclick="mkOwner()">CREATE TOP ADMIN</button><p class="note">Demo build: the account lives only in this browser on this device. Pick a throwaway passphrase, not one you use elsewhere.</p><div id="e" class="red"></div></div>`;
+ if(!U)return app.innerHTML=`<div class="center"><div class="brand">SEAX<b>//</b>INTELLIGENCE</div><div class="h">SIGN IN · NAMED ACCESS</div>
+ <label>Owner</label><input id="n" value="${esc(S.owner.name)}"><label>Passphrase</label><input id="p" type="password" onkeydown="if(event.key==='Enter')login()">
+ <button class="g" onclick="login()">SIGN IN</button> <button class="r" onclick="if(confirm('Wipe all demo data in this browser?')){localStorage.removeItem(K);location.reload()}">RESET DEMO</button><div id="e" class="red"></div></div>`;
+ if(!deskOpen()){app.innerHTML=`<header><div class="brand">SEAX<b>//</b>INTELLIGENCE</div><div class="st"><span>TOP ADMIN <span class="ok">${esc(U.name)}</span></span><span>DESK GATE <span class="amb">SHUT</span></span><span>${now()}</span></div></header><div class="band">LAUNCH · STEP 2 OF 2 · COMPLIANCE UNLOCK</div><div class="pane" id="pane" style="max-width:640px;margin:0 auto"></div><footer><span>Private PI / security case desk · not a public authority · no police or official status</span><span>AUDIT ${S.audit.length} entries</span></footer>`;pComp(null);return}
+ const c=cur();
+ if(!c){app.innerHTML=`<header><div class="brand">SEAX<b>//</b>INTELLIGENCE</div><div class="st"><span>TOP ADMIN <span class="ok">${esc(U.name)}</span></span><span>DESK GATE <span class="ok">OPEN</span></span><span>${now()}</span><span><a href="#" style="color:#7f8ea3" onclick="U=null;R()">LOCK</a></span></div></header><div class="center"><div class="h">ACTIVE CASES</div><p class="note">No cases yet. Desk documents confirmed. Each case needs its own consent records or LIA before people can be added.</p><button class="g" onclick="newCase()">+ OPEN FIRST CASE</button> <button onclick="S.attest={};save();log('DESK_GATE_RESET','top admin');R()">REVIEW DESK DOCUMENTS</button></div><footer><span>Private PI / security case desk · not a public authority · no police or official status</span><span>AUDIT ${S.audit.length} entries</span></footer>`;return}
+ const ents=S.ents.filter(e=>e.case===c.id);
+ app.innerHTML=`<header><div class="brand">SEAX<b>//</b>INTELLIGENCE</div><div class="st"><span>OPERATOR <span class="ok">${esc(U.name)} · TOP ADMIN</span></span><span>SYNC <span class="ok">LOCAL-ONLY</span></span><span>DESK GATE ${deskOpen()?'<span class="ok">OPEN</span>':'<span class="amb">SHUT</span>'}</span><span>${now()}</span><span><a href="#" style="color:#7f8ea3" onclick="U=null;R()">LOCK</a></span></div></header>
+ <div class="wrap"><div class="left"><div class="h">ACTIVE CASES</div>${S.cases.map(k=>`<div class="card ${k.id===c.id?'on':''}" onclick="S.curCase='${k.id}';sel=null;save();R()"><div class="cn">${k.id}</div><div class="cm">${esc(k.client)}</div><div class="cm">${k.lia?'LIA on file':'<span class="amb">No LIA</span>'} · ${S.ents.filter(e=>e.case===k.id).length} entries</div></div>`).join('')}
+ <button onclick="newCase()">+ NEW CASE</button><div class="h">TASK QUEUE</div>${S.tasks.filter(t=>!t.done).map(t=>`<div class="card"><div class="cn red" style="font-size:11px">${esc(t.title)}</div><div class="cm">Due ${t.due}</div><button onclick="doneTask('${t.id}')">MARK DONE</button></div>`).join('')||'<div class="cm">Nothing due.</div>'}</div>
+ <div class="main"><div class="band">SEAX DESK-INTERNAL · CASE-CONFIDENTIAL · ${c.id}</div><div class="tabs">${['graph','entries','add','compliance','audit'].map(t=>`<div class="tab ${tab===t?'on':''}" onclick="tab='${t}';R()">${{graph:'LINK GRAPH',entries:'ENTRIES',add:'+ ADD ENTRY',compliance:'COMPLIANCE UNLOCK',audit:'AUDIT LOG'}[t]}</div>`).join('')}</div><div class="pane" id="pane"></div></div>
+ <div class="right" id="insp"></div></div><footer><span>Private PI / security case desk · not a public authority · no police or official status</span><span id="chain">AUDIT ${S.audit.length} entries</span></footer>`;
+ ({graph:pGraph,entries:pEntries,add:pAdd,compliance:pComp,audit:pAudit})[tab](c,ents);pInsp(c)}
+function pGraph(c,ents){const W=Math.min(900,document.getElementById('pane').clientWidth-10),H=520,cx=W/2,cy=H/2,r=Math.min(W,H)/2-70;const pos={};ents.forEach((e,i)=>{const a=i/ents.length*Math.PI*2-Math.PI/2;pos[e.id]=[cx+r*Math.cos(a),cy+r*Math.sin(a)]});
+ const L=S.links.filter(([a,b])=>pos[a]&&pos[b]);let s=`<svg width="${W}" height="${H}">`;L.forEach(([a,b])=>s+=`<line x1="${pos[a][0]}" y1="${pos[a][1]}" x2="${pos[b][0]}" y2="${pos[b][1]}" stroke="#2a3a50" stroke-width="1.5"/>`);
+ ents.forEach(e=>{const[x,y]=pos[e.id];const col=e.locked?'#ff7b7b':COL[e.type];s+=`<g style="cursor:pointer" onclick="sel='${e.id}';R()"><circle cx="${x}" cy="${y}" r="${sel===e.id?26:22}" fill="#0f1724" stroke="${col}" stroke-width="2" ${e.locked?'stroke-dasharray="4 3"':''}/><text x="${x}" y="${y+4}" text-anchor="middle" style="fill:${col};font-weight:700">${e.locked?'🔒':ABBR[e.type]}</text><text x="${x}" y="${y+40}" text-anchor="middle">${esc(e.label)}</text></g>`});
+ s+='</svg><div class="note">Click a node to inspect it. Legend: '+Object.entries(COL).map(([k,v])=>`<span style="color:${v}">● ${k}</span>`).join(' · ')+'</div>';document.getElementById('pane').innerHTML=ents.length?s:'<div class="note">No entries in this case yet.</div>'}
+function pEntries(c,ents){document.getElementById('pane').innerHTML=`<table><tr><th>ID</th><th>Type</th><th>Label</th><th>Basis / grade</th><th>Source</th><th>Observed</th></tr>${ents.map(e=>`<tr style="cursor:pointer" onclick="sel='${e.id}';R()"><td>${e.id}</td><td style="color:${COL[e.type]}">${e.type}</td><td>${e.locked?'🔒 ':''}${esc(e.label)}</td><td>${esc(e.basis||e.grade||'—')}</td><td>${esc(e.source)}</td><td>${e.obs}</td></tr>`).join('')}</table>`}
+function pAdd(c){const p=document.getElementById('pane');if(!deskOpen()){p.innerHTML=`<div class="box"><div class="cn amb">DESK GATE SHUT</div><p class="note">Real or test entries can only be added once the desk-level documents are attested in COMPLIANCE UNLOCK (ICO registration, DPIA, privacy notice, record of processing, retention schedule, with an in-date DPIA review).</p><button class="a" onclick="tab='compliance';R()">GO TO COMPLIANCE</button></div>`;return}
+ p.innerHTML=`<div style="max-width:560px"><label>Type</label><select id="ty" onchange="addExtras()">${Object.keys(COL).map(t=>`<option>${t}</option>`).join('')}</select><label>Label</label><input id="lb"><div id="ex"></div>
+ <label>Source (required)</label><input id="src"><label>Source date (required)</label><input id="sd" type="date"><label>Observation date (required)</label><input id="od" type="date" value="${today()}">
+ <label>Notes / observable description (no ethnic or racial labels; observable features only)</label><textarea id="ds" rows="3"></textarea><button class="g" onclick="addEnt()">SAVE ENTRY</button><div id="e" class="red"></div></div>`;addExtras()}
+function addExtras(){const t=document.getElementById('ty').value,c=cur();let h='';if(t==='Person')h=`<label>Lawful basis (required)</label><select id="bs"><option>Consent</option><option ${c.lia?'':'disabled'}>Legitimate interests${c.lia?'':' (needs case LIA)'}</option></select><label>Consent proof / privacy-notice status</label><input id="cp" placeholder="e.g. signed form ref, or notice given (date)">`;
+ if(t==='Intelligence')h=`<label>Item type</label><select id="gr"><option>Fact</option><option>Attributed allegation</option><option>Analyst assessment</option></select><label>Confidence grade</label><select id="cf">${['A1','A2','B2','B3','C3','D4','E5'].map(x=>`<option>${x}</option>`).join('')}</select>`;
+ if(t==='Financial')h=`<label>Financial source must be manual entry, Companies House, court judgment or client invoice</label>`;document.getElementById('ex').innerHTML=h}
+async function addEnt(){const v=id=>document.getElementById(id)?.value?.trim();const c=cur(),t=v('ty');if(!v('lb')||!v('src')||!v('sd')||!v('od'))return document.getElementById('e').textContent='Label, source, source date and observation date are all required.';
+ const e={id:uid(ABBR[t]==='£'?'F':ABBR[t][0]),type:t,label:v('lb').toUpperCase(),case:c.id,source:v('src'),sdate:v('sd'),obs:v('od'),by:U.name,desc:v('ds')};
+ if(t==='Person'){e.basis=v('bs');if(e.basis==='Consent'){if(!v('cp'))return document.getElementById('e').textContent='Consent needs a proof reference.';e.consent={scope:'Case enquiries',date:today(),method:'Recorded',proof:v('cp')}}else e.notice=v('cp')||'Notice status not yet recorded'}
+ if(t==='Intelligence'){e.grade=v('gr');e.conf=v('cf')}S.ents.push(e);await log('CREATE',`${e.id} ${e.type} in ${c.id}`);sel=e.id;tab='graph';R()}
+function pComp(c){const a=S.attest,d=a.dpia||{};const p=document.getElementById('pane');
+ p.innerHTML=`<div class="box"><div class="cn">DESK-WIDE (owner attestation, once)</div><p class="note">You confirm each document exists and where it's kept. The app stores only the details below, never the document.</p>
+ <label>ICO registration number</label><input id="ico" value="${esc(a.ico||'')}" placeholder="As shown on the ICO register">
+ <label>DPIA title</label><input id="dt" value="${esc(d.title||'')}"><label>DPIA version</label><input id="dv" value="${esc(d.version||'')}"><label>DPIA signed off</label><input id="dsg" type="date" value="${d.signed||''}"><label>DPIA review date</label><input id="drv" type="date" value="${d.review||''}">
+ ${['notice:Privacy notice in place','ropa:Record of processing in place','retention:Retention schedule in place','apd:Appropriate Policy Document on file (desk policy)'].map(x=>{const[k,l]=x.split(':');return `<label style="display:block"><input type="checkbox" id="${k}" style="width:auto" ${a[k]?'checked':''}> ${l}</label>`}).join('')}
+ <button class="g" onclick="saveAttest()">CONFIRM DESK DOCUMENTS</button> <span class="${deskOpen()?'ok':'amb'} m">${deskOpen()?'DESK GATE OPEN':'DESK GATE SHUT'}</span></div>
+ ${c?`<div class="box"><div class="cn">CASE ${c.id}</div><label>Legitimate Interests Assessment (needed before adding people without consent)</label>
+ ${c.lia?`<div class="m ok">${esc(c.lia.title)} v${esc(c.lia.version)} · ${c.lia.date}</div><button class="r" onclick="revLia()">WITHDRAW LIA</button>`:`<input id="lt" placeholder="LIA title"><input id="lv" placeholder="Version"><button class="g" ${deskOpen()?'':'disabled'} onclick="addLia()">ATTEST LIA</button>`}
+ <div class="h">SPECIAL DATA UNLOCKS (this case only, until case closes)</div>
+ ${unlockUI(c,'Health',['Explicit consent covering health (Art 9(2)(a))','Legal claims (Art 9(2)(f))'],deskOpen())}
+ ${unlockUI(c,'Criminal record',['Consent (DPA 2018 Sch 1 para 29)','Legal claims (DPA 2018 Sch 1 para 33)'],deskOpen()&&a.apd)}
+ ${unlockUI(c,'Biometrics',['Explicit consent (Art 9(2)(a))'],deskOpen())}
+ `:''}<p class="note">Ethnicity, religion and political views are not in this system and cannot be unlocked.</p></div>`}
+function unlockUI(c,cat,conds,ok){const u=unlock(c,cat);const key=cat.replace(/ /g,'');if(u)return `<div class="box"><b class="ok m">${cat.toUpperCase()} · UNLOCKED</b><div class="note">${esc(u.cond)} · evidence ${esc(u.ev)} · by ${esc(u.by)} ${u.t}</div><button class="r" onclick="revoke('${cat}')">REVOKE</button></div>`;
+ return `<div class="box"><b class="m lock">🔒 ${cat.toUpperCase()}</b><select id="c_${key}">${conds.map(x=>`<option>${x}</option>`).join('')}</select><input id="ev_${key}" placeholder="Evidence reference (required)"><button class="a" ${ok?'':'disabled'} onclick="doUnlock('${cat}')">UNLOCK FOR THIS CASE</button>${ok?'':'<div class="note">Needs desk gate open'+(cat==='Criminal record'?' and APD on file':'')+'.</div>'}</div>`}
+function pAudit(){document.getElementById('pane').innerHTML=`<button onclick="verify()">VERIFY HASH CHAIN</button> <span id="vr" class="m"></span><table><tr><th>Time</th><th>Who</th><th>Action</th><th>Detail</th><th>Hash</th></tr>${S.audit.slice().reverse().map(e=>`<tr><td>${e.t}</td><td>${esc(e.who)}</td><td>${e.action}</td><td>${esc(e.detail)}</td><td>${e.hash.slice(0,12)}…</td></tr>`).join('')}</table>`}
+function pInsp(c){const el=document.getElementById('insp');const e=S.ents.find(x=>x.id===sel);if(!e){el.innerHTML='<div class="h">INSPECTOR</div><div class="note">Select an entry.</div>';return}
+ if(!e._v){e._v=1;log('VIEW',e.id)}
+ const linked=S.links.filter(l=>l.includes(e.id)).map(l=>l[0]===e.id?l[1]:l[0]);const others=S.ents.filter(x=>x.case===c.id&&x.id!==e.id&&!linked.includes(x.id));
+ const rows=[['Type',e.type],['Case',e.case],['Lawful basis',e.basis],['Consent',e.consent&&`${e.consent.method} · ${e.consent.date} · ${e.consent.proof}`],['Privacy notice',e.notice],['Item type',e.grade],['Confidence',e.conf],['Source',e.source],['Source date',e.sdate],['Observed',e.obs],['Entered by',e.by],['Status',e.locked?'LOCKED · do not process':e.objection?'OBJECTION · restricted':'Active']].filter(r=>r[1]);
+ el.innerHTML=`<div class="h">INSPECTOR</div><div class="cn" style="font-size:15px">${esc(e.label)} · ${e.id}</div>${rows.map(([k,v])=>`<div class="row"><span class="k">${k}</span><span class="v">${esc(v)}</span></div>`).join('')}
+ <div class="box"><div class="h" style="margin-top:0">DESCRIPTION / NOTES</div>${e.locked?'<span class="lock">Hidden: record locked</span>':esc(e.desc||'—')}</div>
+ ${e.type==='Person'?`<div class="box"><div class="h" style="margin-top:0">LOCKED FIELDS</div>${['Health','Criminal record','Biometrics'].map(cat=>unlock(c,cat)&&!e.locked?`<label>${cat} (unlocked: ${esc(unlock(c,cat).cond)})</label><input value="${esc((e.sp||{})[cat]||'')}" onchange="setSp('${e.id}','${cat}',this.value)">`:`<div class="lock">🔒 ${cat.toUpperCase()}</div>`).join('')}</div>
+ <div class="box"><div class="h" style="margin-top:0">SUBJECT RIGHTS</div><button onclick="sar('${e.id}')">EXPORT ALL (SAR)</button><button class="a" onclick="objection('${e.id}')" ${e.objection||e.locked?'disabled':''}>OBJECTION RECEIVED</button><button class="r" onclick="withdraw('${e.id}')" ${e.locked?'disabled':''}>${e.basis==='Consent'?'CONSENT WITHDRAWN':'FREEZE / ERASE'}</button></div>`:''}
+ <div class="box"><div class="h" style="margin-top:0">LINKS (${linked.length})</div>${linked.map(id=>`<div class="m" style="font-size:12px">↔ ${id} ${esc(S.ents.find(x=>x.id===id)?.label)}</div>`).join('')||'<div class="note">None</div>'}
+ ${e.locked?'':`<select id="lk">${others.map(o=>`<option value="${o.id}">${o.id} ${esc(o.label)}</option>`).join('')}</select><button onclick="addLink('${e.id}')" ${others.length?'':'disabled'}>+ LINK</button>`}</div>`}
+async function mkOwner(){const n=v('n'),p=v('p');if(!n||p.length<12||p!==v('p2'))return err('Name required; passphrase 12+ characters and both entries must match.');const salt=crypto.getRandomValues(new Uint32Array(4)).join('-');S.owner={name:n,salt,hash:await kdf(p,salt)};U={name:n};await log('OWNER_CREATED',n);R()}
+async function login(){S.fails=(S.fails||[]).filter(t=>Date.now()-t<9e5);if(S.fails.length>=5)return err('Locked for 15 minutes after 5 failed attempts.');if(await kdf(v('p'),S.owner.salt)===S.owner.hash&&v('n')===S.owner.name){U={name:S.owner.name};S.fails=[];await log('SIGN_IN','ok');R()}else{S.fails.push(Date.now());save();await log('SIGN_IN_FAIL',v('n'));err('Wrong owner or passphrase.')}}
+const v=id=>document.getElementById(id)?.value?.trim();const err=m=>document.getElementById('e').textContent=m;
+async function saveAttest(){const a=S.attest;a.ico=v('ico');a.dpia=v('dt')&&v('dv')&&v('dsg')&&v('drv')?{title:v('dt'),version:v('dv'),signed:v('dsg'),review:v('drv')}:null;['notice','ropa','retention','apd'].forEach(k=>a[k]=document.getElementById(k).checked);await log('ATTEST_DESK',`ICO ${a.ico||'-'}; DPIA ${a.dpia?a.dpia.title+' v'+a.dpia.version+' review '+a.dpia.review:'missing'}; notice ${a.notice}; ROPA ${a.ropa}; retention ${a.retention}; APD ${a.apd}`);R()}
+async function addLia(){const c=cur();if(!v('lt')||!v('lv'))return alert('LIA title and version required');c.lia={title:v('lt'),version:v('lv'),date:today()};await log('ATTEST_LIA',c.id+' '+c.lia.title);R()}
+async function revLia(){const c=cur();c.lia=null;await log('WITHDRAW_LIA',c.id);R()}
+async function doUnlock(cat){const c=cur(),k=cat.replace(/ /g,'');const ev=v('ev_'+k);if(!ev)return alert('Evidence reference required');c.unlocks.push({cat,cond:v('c_'+k),ev,by:U.name,t:now()});await log('UNLOCK',`${c.id} ${cat} · ${v('c_'+k)} · ${ev}`);R()}
+async function revoke(cat){const c=cur();unlock(c,cat).revoked=now();await log('REVOKE',`${c.id} ${cat}`);R()}
+async function setSp(id,cat,val){const e=S.ents.find(x=>x.id===id);e.sp=e.sp||{};e.sp[cat]=val;await log('EDIT_SPECIAL',`${id} ${cat}`)}
+async function addLink(id){const o=v('lk');S.links.push([id,o]);await log('LINK',`${id}↔${o}`);R()}
+async function withdraw(id){if(!confirm('Lock this record and raise a 30-day deletion task?'))return;const e=S.ents.find(x=>x.id===id);e.locked=true;const d=new Date(Date.now()+30*864e5).toISOString().slice(0,10);S.tasks.push({id:uid('T'),title:`DELETE ${id} (${e.case}) · ${e.basis==='Consent'?'consent withdrawn':'erasure'}`,due:d});await log('LOCK_AND_DELETION_TASK',`${id} due ${d}`);R()}
+async function objection(id){const e=S.ents.find(x=>x.id===id);e.objection=true;await log('OBJECTION',id);R()}
+async function doneTask(tid){const t=S.tasks.find(x=>x.id===tid);t.done=true;const id=t.title.split(' ')[1];S.ents=S.ents.filter(e=>e.id!==id);S.links=S.links.filter(l=>!l.includes(id));S.ents.push({id:'DNP-'+id,type:'Person',label:'DO NOT PROCESS',case:t.title.match(/\((.*?)\)/)[1],locked:true,source:'Deletion record',sdate:today(),obs:today(),by:U.name,desc:''});await log('DELETED',`${id}; do-not-process marker kept`);sel=null;R()}
+async function sar(id){const e=S.ents.find(x=>x.id===id);const out={exported:now(),record:e,links:S.links.filter(l=>l.includes(id)),audit:S.audit.filter(a=>a.detail.includes(id))};const b=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`SAR-${id}.json`;a.click();await log('EXPORT_SAR',id)}
+async function newCase(){if(!deskOpen())return alert('Desk gate is shut. Attest desk documents first.');const n=prompt('Case codename (e.g. OP TERN)');const cl=n&&prompt('Client (test)');if(!n||!cl)return;S.cases.push({id:n.toUpperCase(),client:cl,lia:null,unlocks:[]});S.curCase=n.toUpperCase();await log('CASE_CREATED',n.toUpperCase());R()}
+async function verify(){let prev='GENESIS',ok=true;for(const e of S.audit){if(e.prev!==prev||await sha(prev+e.t+e.who+e.action+e.detail)!==e.hash){ok=false;break}prev=e.hash}document.getElementById('vr').innerHTML=ok?'<span class="ok">CHAIN INTACT</span>':'<span class="red">CHAIN BROKEN</span>'}
+S=JSON.parse(localStorage.getItem(K)||'null')||seed();save();R();
+</script></body></html>
