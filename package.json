@@ -1,0 +1,15 @@
+{
+  "name": "seax-intelligence",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "pretest": "playwright install chromium",
+    "test": "node --test tests/unit.mjs && playwright test",
+    "test:setup": "playwright install chromium",
+    "test:unit": "node --test tests/unit.mjs",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0"
+  }
+}
